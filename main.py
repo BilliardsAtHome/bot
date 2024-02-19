@@ -8,6 +8,17 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
+#TODO implement databases for users/breaks
+    # users, highest break, count, best time
+    # every 7+, input/rng values, owner, timestamp
+#TODO figure out embed builder for leaderboard (buttons to nav pages)
+#TODO function for reporting/logging incoming requests, call in onReq
+#TODO slash commands
+    # leaderboard
+    # claim user ID for incoming breaks
+#! figure out flask setup, for virtual env and such
+#! figure out server stuff, nginx/gunicorn
+
 
 # Classes
 class Globals:
