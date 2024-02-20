@@ -1,5 +1,10 @@
 # billiards
 
+## files
+- main.py : flask stuff
+- bot.py : bot stuff
+- config.ini : config stuff
+
 ## pip packages
 - discord
 - flask

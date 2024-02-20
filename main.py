@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
+import time
 
 
 # Flask setup
@@ -35,6 +36,7 @@ class BreakInfo:
         self.power = request.args.get("power")
         self.foul = request.args.get("foul")
         self.checksum = request.args.get("checksum")
+        self.timestamp = None
 
     def __repr__(self):
         return f"{self.user} {self.seed} {self.kseed} {self.sunk} {self.off} {self.frame} {self.up} {self.left} {self.right} {self.posX} {self.posY} {self.power} {self.foul} {self.checksum}"
@@ -45,8 +47,9 @@ class BreakInfo:
 @cross_origin()
 async def onRequest():
     breakInfo = BreakInfo(request)
+    breakInfo.timestamp = round(time.time())
 
     #TODO enter data into databases here. all 7+ breaks in one, bests per user in another.
-    
+
     # this is just temp to make sure it works, removoe later
     return f"<p>{breakInfo}</p>"
