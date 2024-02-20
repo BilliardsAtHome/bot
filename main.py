@@ -34,6 +34,8 @@ class Globals:
         self.server = None
         self.channel = None
 
+        # TODO potentially stack of breaks to process?
+
 class BreakInfo:
     def __init__(self, request):
         self.user = request.args.get("user")
@@ -45,11 +47,14 @@ class BreakInfo:
         self.up = request.args.get("up")
         self.left = request.args.get("left")
         self.right = request.args.get("right")
-        self.posY = request.args.get("posx")
+        self.posX = request.args.get("posx")
         self.posY = request.args.get("posy")
         self.power = request.args.get("power")
         self.foul = request.args.get("foul")
         self.checksum = request.args.get("checksum")
+
+    def __repr__(self):
+        return f"{self.user} {self.seed} {self.kseed} {self.sunk} {self.off} {self.frame} {self.up} {self.left} {self.right} {self.posX} {self.posY} {self.power} {self.foul} {self.checksum}"
 
 
 # Globals
@@ -60,10 +65,12 @@ client = discord.Client(intents=discord.Intents.default())
 # handle requests to /billiards/api
 @app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
-def onRequest():
+async def onRequest():
     # puts makes class with parameters
     breakInfo = BreakInfo(request)
-    # TODO call to handling function here 
+    return f"<p>{breakInfo}</p>"
+    #globals.channel.send(breakInfo)
+    # TODO call to handling function here? or add to stack? idk yet 
 
 @app.route("/")
 @cross_origin()
@@ -79,8 +86,8 @@ async def on_ready():
     # Called once when the bot establishes a connection with the Discord API.
 
     # Find channel through the API
-    globals.server = client.get_guild(globals.serverID)
-    globals.channel = client.get_channel(globals.channelID)
+    globals.server = await client.get_guild(globals.serverID)
+    globals.channel = await client.get_channel(globals.channelID)
 
     assert globals.server is not None, "Can't find/access the discord server"
     assert globals.channel is not None, "Can't find/access the discord channel"
