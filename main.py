@@ -1,41 +1,24 @@
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
-import discord
-from configparser import RawConfigParser
+
 
 # Flask setup
 app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
-#TODO implement databases for users/breaks
+#TODO implement databases for users/breaks (call in onrequest)
     # users, highest break, count, best time
     # every 7+, input/rng values, owner, timestamp
 #TODO figure out embed builder for leaderboard (buttons to nav pages)
-#TODO function for reporting/logging incoming requests, call in onReq
 #TODO slash commands
     # leaderboard
-    # claim user ID for incoming breaks
-#! figure out flask setup, for virtual env and such
+    # claim user ID for incoming breaks? if using that method
 #! figure out server stuff, nginx/gunicorn
 
 
+
 # Classes
-class Globals:
-    def __init__(self, path: str):
-        parser = RawConfigParser()
-        parser.read(path, encoding="utf-8")
-
-        self.serverID = int(parser.get("discord", "server"))
-        self.channelID = int(parser.get("discord", "channel"))
-        self.token = str(parser.get("secrets", "token"))
-        self.appID = int(parser.get("secrets", "appID"))
-
-        self.server = None
-        self.channel = None
-
-        # TODO potentially stack of breaks to process?
-
 class BreakInfo:
     def __init__(self, request):
         self.user = request.args.get("user")
@@ -57,45 +40,13 @@ class BreakInfo:
         return f"{self.user} {self.seed} {self.kseed} {self.sunk} {self.off} {self.frame} {self.up} {self.left} {self.right} {self.posX} {self.posY} {self.power} {self.foul} {self.checksum}"
 
 
-# Globals
-globals = Globals("config.ini")
-client = discord.Client(intents=discord.Intents.default())
-
-
 # handle requests to /billiards/api
 @app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
 async def onRequest():
-    # puts makes class with parameters
     breakInfo = BreakInfo(request)
-    return f"<p>{breakInfo}</p>"
-    #globals.channel.send(breakInfo)
-    # TODO call to handling function here? or add to stack? idk yet 
 
-@app.route("/")
-@cross_origin()
-def homePage():
-    a = request.args.get("a")
-    return f"<p>{a}</p>"
-
-
-
-# bot stuff here
-@client.event
-async def on_ready():
-    # Called once when the bot establishes a connection with the Discord API.
-
-    # Find channel through the API
-    globals.server = await client.get_guild(globals.serverID)
-    globals.channel = await client.get_channel(globals.channelID)
-
-    assert globals.server is not None, "Can't find/access the discord server"
-    assert globals.channel is not None, "Can't find/access the discord channel"
-
-
-# functions
+    #TODO enter data into databases here. all 7+ breaks in one, bests per user in another.
     
-
-
-# Start the bot
-client.run(globals.token)
+    # this is just temp to make sure it works, removoe later
+    return f"<p>{breakInfo}</p>"

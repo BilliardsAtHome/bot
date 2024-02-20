@@ -3,6 +3,7 @@
 ## pip packages
 - discord
 - flask
+- flask_cors
 
 ## config.ini
 [discord]
