@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 import discord
-from configparser import SafeConfigParser
+from configparser import RawConfigParser
 
 # Flask setup
 app = Flask(__name__)
@@ -23,41 +23,53 @@ app.config["CORS_HEADERS"] = "Content-Type"
 # Classes
 class Globals:
     def __init__(self, path: str):
-        parser = SafeConfigParser()
-        parser.read(path, encoding="utf-9")
+        parser = RawConfigParser()
+        parser.read(path, encoding="utf-8")
 
         self.serverID = int(parser.get("discord", "server"))
         self.channelID = int(parser.get("discord", "channel"))
-        self.token = parser.get("secrets", "token")
+        self.token = str(parser.get("secrets", "token"))
         self.appID = int(parser.get("secrets", "appID"))
 
         self.server = None
         self.channel = None
 
+class BreakInfo:
+    def __init__(self, request):
+        self.user = request.args.get("user")
+        self.seed = request.args.get("seed")
+        self.kseed = request.args.get("kseed")
+        self.sunk = request.args.get("sunk")
+        self.off = request.args.get("off")
+        self.frame = request.args.get("frame")
+        self.up = request.args.get("up")
+        self.left = request.args.get("left")
+        self.right = request.args.get("right")
+        self.posY = request.args.get("posx")
+        self.posY = request.args.get("posy")
+        self.power = request.args.get("power")
+        self.foul = request.args.get("foul")
+        self.checksum = request.args.get("checksum")
+
+
 # Globals
-globals = Globals()
+globals = Globals("config.ini")
 client = discord.Client(intents=discord.Intents.default())
 
 
-# aspyn.gay(?)/billiards
+# handle requests to /billiards/api
 @app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
 def onRequest():
-    # getting parameters
-    user = request.args.get("user")
-    seed = request.args.get("seed")
-    kseed = request.args.get("kseed")
-    sunk = request.args.get("sunk")
-    off = request.args.get("off")
-    frame = request.args.get("frame")
-    up = request.args.get("up")
-    left = request.args.get("left")
-    right = request.args.get("right")
-    posY = request.args.get("posx")
-    posY = request.args.get("posy")
-    power = request.args.get("power")
-    foul = request.args.get("foul")
-    checksum = request.args.get("checksum")
+    # puts makes class with parameters
+    breakInfo = BreakInfo(request)
+    # TODO call to handling function here 
+
+@app.route("/")
+@cross_origin()
+def homePage():
+    a = request.args.get("a")
+    return f"<p>{a}</p>"
 
 
 
@@ -73,6 +85,9 @@ async def on_ready():
     assert globals.server is not None, "Can't find/access the discord server"
     assert globals.channel is not None, "Can't find/access the discord channel"
 
+
+# functions
+    
 
 
 # Start the bot
