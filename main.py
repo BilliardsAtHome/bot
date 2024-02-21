@@ -45,7 +45,7 @@ class BreakInfo:
 # handle requests to /billiards/api
 @app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
-async def onRequest():
+def onRequest():
     breakInfo = BreakInfo(request)
     breakInfo.timestamp = round(time.time())
 
