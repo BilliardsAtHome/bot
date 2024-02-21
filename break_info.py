@@ -1,48 +1,54 @@
+from dataclasses import dataclass, fields
+
+
+"""
+From values -> BreakInfo(user, seed, kseed, ...)
+From tuple  -> BreakInfo(*the_tuple)
+From dict   -> BreakInfo(**the_dict)
+"""
+
+
+@dataclass
 class BreakInfo:
-    # Fields in both the SQL table and the Python object.
-    # (Order-sensitive and case-sensitive)
-    FIELDS = [
-        "user",
-        "timestamp",
-        "seed",
-        "kseed",
-        "sunk",
-        "off",
-        "frame",
-        "up",
-        "left",
-        "right",
-        "posx",
-        "posy",
-        "power",
-        "foul"
-    ]
+    user: str  # Discord user ID
 
-    def __init__(self, args):
-        # Convert list/tuple to dictionary
-        if type(args) != dict:
-            # (0123, 1, 0xABCD) -> {user : 0123, timestamp : 1, seed : 0xABCD}
-            args = dict((key, value)
-                        for key, value in zip(self.FIELDS, args))
+    seed: int   # RP random seed (for balls)
+    kseed: int  # libkiwi random seed (for simulation)
 
-        # Read from the dictionary
-        self.unpack(args)
+    sunk: int  # Balls pocketed
+    off: int   # Balls shot off the table
 
-    def unpack(self, args: dict):
-        self.user = args["user"]
-        self.timestamp = 0
-        self.seed = args["seed"]
-        self.kseed = args["kseed"]
-        self.sunk = args["sunk"]
-        self.off = args["off"]
-        self.frame = args["frame"]
-        self.up = args["up"]
-        self.left = args["left"]
-        self.right = args["right"]
-        self.posx = args["posx"]
-        self.posy = args["posy"]
-        self.power = args["power"]
-        self.foul = args["foul"]
+    frame: int  # Shot frame count
+    up: int     # Frames aimed up
+    left: int   # Frames aimed left
+    right: int  # Frames aimed right
+
+    posx: int   # Cue X position
+    posy: int   # Cue Y position
+    power: int  # Cue power
+
+    foul: bool  # One or more fouls occurred
+
+    timestamp: int = 0  # Submission timestamp
+
+    #
+    # Enforces type checking (automatically called by __init__)
+    #
+    def __post_init__(self):
+        for field in fields(self):
+            # Real class member
+            member = getattr(self, field.name)
+
+            # Try to convert to the expected type.
+            # If this fails it will raise an exception.
+            if not isinstance(member, field.type):
+
+                # Don't default to base 10 for integers
+                if field.type == int:
+                    setattr(self, field.name, int(member, base=0))
+                # Some other type, cast normally
+                else:
+                    setattr(self, field.name, field.type(member))
 
     def __repr__(self):
-        return f"{self.user} {self.seed} {self.kseed} {self.sunk} {self.off} {self.frame} {self.up} {self.left} {self.right} {self.posX} {self.posY} {self.power} {self.foul} {self.checksum}"
+        return str(self.__dict__)
