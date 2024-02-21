@@ -22,6 +22,6 @@ appID = {app ID}
 ## testing setup
 python3 -m venv env
 source env/bin/activate
-pip install discord flask
+pip install discord flask flask_cors
 
 flask --app main run
