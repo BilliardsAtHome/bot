@@ -4,6 +4,8 @@
 - main.py : flask stuff
 - bot.py : bot stuff
 - config.ini : config stuff
+- database.py : sqlite wrapper
+- break_info.py : class to store break info
 
 ## pip packages
 - discord
