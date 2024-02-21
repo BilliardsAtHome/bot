@@ -9,18 +9,18 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
-# TODO implement databases for users/breaks (call in onrequest)
-# users, highest break, count, best time
-# every 7+, input/rng values, owner, timestamp
-# TODO figure out embed builder for leaderboard (buttons to nav pages)
-# TODO slash commands
-# leaderboard
-# claim user ID for incoming breaks? if using that method
+#TODO implement databases for users/breaks (call in onrequest)
+    # users, highest break, count, best time
+    # every 7+, input/rng values, owner, timestamp
+#TODO figure out embed builder for leaderboard (buttons to nav pages)
+#TODO slash commands
+    # leaderboard
+    # claim user ID for incoming breaks? if using that method
 #! figure out server stuff, nginx/gunicorn
 
 
 # handle requests to /billiards/api
-@app.route("/billiards/api")  # endpoint relative to how nginix is set up
+@app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
 def onRequest():
     try:
