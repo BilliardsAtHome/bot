@@ -31,6 +31,8 @@ class BreakInfo:
 
     foul: bool  # One or more fouls occurred
 
+    checksum: int
+
     timestamp: int = 0  # Submission timestamp
 
     #

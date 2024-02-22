@@ -59,6 +59,7 @@ class Database:
                     posy      int,
                     power     int,
                     foul      bit,
+                    checksum  int,
                     timestamp int
                 )""")
         except OperationalError:

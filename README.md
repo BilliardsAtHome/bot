@@ -6,6 +6,8 @@
 - config.ini : config stuff
 - database.py : sqlite wrapper
 - break_info.py : class to store break info
+- users.db : users' best breaks
+- breaks.db : all 7+ breaks
 
 ## pip packages
 - discord

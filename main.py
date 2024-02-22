@@ -2,21 +2,13 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 import time
 from break_info import BreakInfo
+from database import Database
 
 
 # Flask setup
 app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
-
-#TODO implement databases for users/breaks (call in onrequest)
-    # users, highest break, count, best time
-    # every 7+, input/rng values, owner, timestamp
-#TODO figure out embed builder for leaderboard (buttons to nav pages)
-#TODO slash commands
-    # leaderboard
-    # claim user ID for incoming breaks? if using that method
-#! figure out server stuff, nginx/gunicorn
 
 
 # handle requests to /billiards/api
@@ -29,11 +21,20 @@ def onRequest():
         # unpack fields from dictionary
         breakInfo = BreakInfo(**args)
         breakInfo.timestamp = round(time.time())
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as error:
+        print(error)
         # wrong argument count / name / type
         return ""
 
-    # TODO enter data into databases here. all 7+ breaks in one, bests per user in another.
-
+    if breakInfo.sunk + breakInfo.off > 6:
+        breakDB = Database('breaks.db')
+        breakDB.add(breakInfo)
+    usersDB = Database('users.db')
+    if usersDB.contains_user(breakInfo.user):
+        userBest: BreakInfo = usersDB.get_user_best(breakInfo.user)
+        if breakInfo > userBest:
+            usersDB.set_user_best(breakInfo)
+    else:
+        usersDB.add(breakInfo)
     # this is just temp to make sure it works, removoe later
     return f"<p>{breakInfo}</p>"
