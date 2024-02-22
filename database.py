@@ -19,7 +19,7 @@ def dict_to_sql_set(d):
 def dict_to_sql_where(d):
     # {name1 : "value1", name2 : "value2"} -> name1="value1" AND name2="value2"
     return " AND ".join([f"{key}={value}"
-                         for key, value in d.items()])
+                        for key, value in d.items()])
 
 
 class Database:
@@ -137,6 +137,62 @@ class Database:
         where = dict_to_sql_where(asdict(old))
         self.replace(where, info)
         return old
+    
+    #
+    #
+    # Obtain best record across all users
+    #
+    # Returns:
+    #   Search result (BreakInfo) copied from the DB
+    #   (None if there are no results)
+    #
+    #
+    def get_global_best(self) -> BreakInfo | None:
+        command = """SELECT * FROM break
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
+        LIMIT 1"""
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return None if not result else BreakInfo(*result)
+
+    #
+    #
+    # Obtain best record at/before a specified timestamp
+    #
+    # Returns:
+    #   Search result (BreakInfo) copied from the DB
+    #   (None if there are no results)
+    #
+    #
+
+
+    def get_global_best_at_before(self, timestamp: int) -> BreakInfo | None:
+        command = f"""SELECT * FROM break WHERE timestamp <= {timestamp}
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
+        LIMIT 1"""
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return None if not result else BreakInfo(*result)
+
+    #
+    #
+    # Obtain best record since a specified timestamp
+    #
+    # Returns:
+    #   Search result (BreakInfo) copied from the DB
+    #   (None if there has not been a new record)
+    #
+    #
+
+
+    def get_new_global_best(self, last_time: int) -> BreakInfo | None:
+        best_before = self.get_global_best_at_before(last_time)
+        best_ever = self.get_global_best()
+        return best_ever if best_before != best_ever else None
 
     """
     ===========================================================================

@@ -54,7 +54,8 @@ async def on_ready():
     task_watch_file.start()
 
 
-# TODO task to check database for new top entry
+# Periodically checks database for new top entry
+#TODO change to a minute when done testing
 @tasks.loop(seconds=5)
 async def task_watch_file():
     print("a")
