@@ -1,6 +1,25 @@
 from sqlite3 import connect, OperationalError
 from break_info import BreakInfo
 from dataclasses import fields, astuple, asdict
+from random import randint
+
+
+#
+# Convert dictionary to SET command values
+#
+def dict_to_sql_set(d):
+    # {name1 : "value1", name2 : "value2"} -> name1="value1", name2="value2"
+    return ", ".join([f"{key}={value}"
+                      for key, value in d.items()])
+
+
+#
+# Convert dictionary to SET command values
+#
+def dict_to_sql_where(d):
+    # {name1 : "value1", name2 : "value2"} -> name1="value1" AND name2="value2"
+    return " AND ".join([f"{key}={value}"
+                         for key, value in d.items()])
 
 
 class Database:
@@ -109,12 +128,13 @@ class Database:
         old = self.get_user_best(info.user)
 
         # Nothing in the DB from this user
-        if old == None:
+        if not old:
             self.add(info)
             return None
 
         # Replace old entry
-        self.replace(asdict(old), info)
+        where = dict_to_sql_where(asdict(old))
+        self.replace(where, info)
         return old
 
     """
@@ -212,11 +232,7 @@ class Database:
     def update(self, where: str, values: dict) -> int:
         assert len(where) > 0, "This will update the entire table!"
 
-        # Convert dictionary to SQL command syntax
-        # {name1 : "value1", name2 : "value2"} -> name1="value1", name2="value2"
-        params = ", ".join([f"{key}={value}"
-                            for key, value in values.items()])
-
+        params = dict_to_sql_set(values)
         command = f"UPDATE break SET {params} WHERE {where}"
 
         self.cursor.execute(command)
