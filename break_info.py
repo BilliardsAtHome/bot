@@ -1,4 +1,5 @@
 from dataclasses import dataclass, fields
+from functools import total_ordering
 
 
 """
@@ -8,7 +9,8 @@ From dict   -> BreakInfo(**the_dict)
 """
 
 
-@dataclass
+@dataclass(eq=False, order=False)
+@total_ordering
 class BreakInfo:
     user: str  # Discord user ID
 
@@ -49,6 +51,40 @@ class BreakInfo:
                 # Some other type, cast normally
                 else:
                     setattr(self, field.name, field.type(member))
+
+    #
+    # Equal operator
+    #
+    def __eq__(self, other: "BreakInfo") -> bool:
+        return (self.sunk == other.sunk
+                and self.off == other.off
+                and self.foul == other.foul
+                and self.frame == other.frame)
+
+    #
+    # Greater-than operator
+    #
+    def __gt__(self, other: "BreakInfo") -> bool:
+        self_total = self.sunk + self.off
+        other_total = other.sunk + other.off
+
+        # Compare total balls out of play
+        if self_total != other_total:
+            return self_total > other_total
+
+        # Compare balls pocketed
+        if self.sunk != other.sunk:
+            return self.sunk > other.sunk
+
+        # Compare foul
+        if self.foul != other.foul:
+            return self.foul == False
+
+        # Compare frame count
+        if self.frame != other.frame:
+            return self.frame < other.frame
+
+        return False
 
     def __repr__(self):
         return str(self.__dict__)

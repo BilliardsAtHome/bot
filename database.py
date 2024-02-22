@@ -1,6 +1,25 @@
 from sqlite3 import connect, OperationalError
 from break_info import BreakInfo
-from dataclasses import fields, astuple
+from dataclasses import fields, astuple, asdict
+from random import randint
+
+
+#
+# Convert dictionary to SET command values
+#
+def dict_to_sql_set(d):
+    # {name1 : "value1", name2 : "value2"} -> name1="value1", name2="value2"
+    return ", ".join([f"{key}={value}"
+                      for key, value in d.items()])
+
+
+#
+# Convert dictionary to SET command values
+#
+def dict_to_sql_where(d):
+    # {name1 : "value1", name2 : "value2"} -> name1="value1" AND name2="value2"
+    return " AND ".join([f"{key}={value}"
+                         for key, value in d.items()])
 
 
 class Database:
@@ -45,6 +64,86 @@ class Database:
         except OperationalError:
             # Table already exists
             pass
+
+    """
+    ===========================================================================
+
+                                Functions by user
+
+    ===========================================================================
+    """
+
+    #
+    #
+    # Check if a user is in the database
+    #
+    #
+    def contains_user(self, user: str) -> bool:
+        return self.count(f"user = {user}") > 0
+
+    #
+    #
+    # Obtain all records by user ID
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB.
+    #   Results are sorted in descending order.
+    #
+    #
+    def get_user_all(self, user: str) -> list:
+        command = f"""SELECT * FROM break WHERE user = {user}
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC"""
+
+        self.cursor.execute(command)
+
+        return [BreakInfo(*row) for row in self.cursor.fetchall()]
+
+    #
+    #
+    # Obtain best record by user ID
+    #
+    # Returns:
+    #   Search result (BreakInfo) copied from the DB
+    #
+    #
+    def get_user_best(self, user: str) -> BreakInfo:
+        command = f"""SELECT * FROM break WHERE user = {user}
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
+        LIMIT 1"""
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return None if not result else BreakInfo(*result)
+
+    #
+    #
+    # Update best record by user ID
+    #
+    # Returns:
+    #   Old best record
+    #
+    #
+    def set_user_best(self, info: BreakInfo):
+        old = self.get_user_best(info.user)
+
+        # Nothing in the DB from this user
+        if not old:
+            self.add(info)
+            return None
+
+        # Replace old entry
+        where = dict_to_sql_where(asdict(old))
+        self.replace(where, info)
+        return old
+
+    """
+    ===========================================================================
+
+                                   SQL commands
+
+    ===========================================================================
+    """
 
     #
     #
@@ -93,6 +192,37 @@ class Database:
 
     #
     #
+    # Get top database entries fulfulling a certain condition.
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB
+    #
+    #
+    def top(self, count: int, where: str) -> list:
+        command = f"SELECT * FROM break WHERE {where} LIMIT {count}"
+
+        self.cursor.execute(command)
+
+        return [BreakInfo(*row) for row in self.cursor.fetchall()]
+
+    #
+    #
+    # Count database entries fulfilling a certain condition.
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB
+    #
+    #
+    def count(self, where: str) -> int:
+        command = f"SELECT COUNT (*) FROM break WHERE {where}"
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return 0 if not result else result[0]
+
+    #
+    #
     # Update certain fields in existing database entries.
     #
     # Returns:
@@ -102,11 +232,7 @@ class Database:
     def update(self, where: str, values: dict) -> int:
         assert len(where) > 0, "This will update the entire table!"
 
-        # Convert dictionary to SQL command syntax
-        # {name1 : "value1", name2 : "value2"} -> name1="value1", name2="value2"
-        params = ", ".join([f"{key}={value}"
-                            for key, value in values.items()])
-
+        params = dict_to_sql_set(values)
         command = f"UPDATE break SET {params} WHERE {where}"
 
         self.cursor.execute(command)
