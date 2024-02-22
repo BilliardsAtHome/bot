@@ -1,6 +1,6 @@
 from sqlite3 import connect, OperationalError
 from break_info import BreakInfo
-from dataclasses import fields, astuple
+from dataclasses import fields, astuple, asdict
 
 
 class Database:
@@ -46,6 +46,85 @@ class Database:
             # Table already exists
             pass
 
+    """
+    ===========================================================================
+
+                                Functions by user
+
+    ===========================================================================
+    """
+
+    #
+    #
+    # Check if a user is in the database
+    #
+    #
+    def contains_user(self, user: str) -> bool:
+        return self.count(f"user = {user}") > 0
+
+    #
+    #
+    # Obtain all records by user ID
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB.
+    #   Results are sorted in descending order.
+    #
+    #
+    def get_user_all(self, user: str) -> list:
+        command = f"""SELECT * FROM break WHERE user = {user}
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC"""
+
+        self.cursor.execute(command)
+
+        return [BreakInfo(*row) for row in self.cursor.fetchall()]
+
+    #
+    #
+    # Obtain best record by user ID
+    #
+    # Returns:
+    #   Search result (BreakInfo) copied from the DB
+    #
+    #
+    def get_user_best(self, user: str) -> BreakInfo:
+        command = f"""SELECT * FROM break WHERE user = {user}
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
+        LIMIT 1"""
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return None if not result else BreakInfo(*result)
+
+    #
+    #
+    # Update best record by user ID
+    #
+    # Returns:
+    #   Old best record
+    #
+    #
+    def set_user_best(self, info: BreakInfo):
+        old = self.get_user_best(info.user)
+
+        # Nothing in the DB from this user
+        if old == None:
+            self.add(info)
+            return None
+
+        # Replace old entry
+        self.replace(asdict(old), info)
+        return old
+
+    """
+    ===========================================================================
+
+                                   SQL commands
+
+    ===========================================================================
+    """
+
     #
     #
     # Add a break to the database
@@ -90,6 +169,37 @@ class Database:
         self.cursor.execute(command)
 
         return [BreakInfo(*row) for row in self.cursor.fetchall()]
+
+    #
+    #
+    # Get top database entries fulfulling a certain condition.
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB
+    #
+    #
+    def top(self, count: int, where: str) -> list:
+        command = f"SELECT * FROM break WHERE {where} LIMIT {count}"
+
+        self.cursor.execute(command)
+
+        return [BreakInfo(*row) for row in self.cursor.fetchall()]
+
+    #
+    #
+    # Count database entries fulfilling a certain condition.
+    #
+    # Returns:
+    #   Search results (BreakInfo) copied from the DB
+    #
+    #
+    def count(self, where: str) -> int:
+        command = f"SELECT COUNT (*) FROM break WHERE {where}"
+
+        self.cursor.execute(command)
+
+        result = self.cursor.fetchone()
+        return 0 if not result else result[0]
 
     #
     #
