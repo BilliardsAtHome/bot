@@ -9,11 +9,6 @@
 - users.db : users' best breaks
 - breaks.db : all 7+ breaks
 
-## pip packages
-- discord
-- flask
-- flask_cors
-
 ## config.ini
 ```ini
 [discord]
