@@ -4,6 +4,7 @@ from configparser import RawConfigParser
 from break_info import BreakInfo
 from database import Database
 import time
+from os import path
 
 #TODO figure out embed builder for leaderboard (buttons to nav pages)
 #TODO slash commands
@@ -72,10 +73,12 @@ async def on_ready():
 #TODO change to a minute when done testing
 @tasks.loop(seconds=5)
 async def task_watch_file():
+    if not path.exists('breaks.db'):
+        return
     timestamp = globals.timestamp("config.ini")
     newBreak = await recordCheck(timestamp)
     if type(newBreak) != type(None):
-        await globals.channel.send(f"```User {newBreak.user} got a {newBreak.sunk + newBreak.off} break with {newBreak.off} ball(s) off the table in {newBreak.frame / 60:.2f} seconds ({newBreak.frame} frames)!```")
+        await globals.channel.send(f"User <@{newBreak.user}> got a {newBreak.sunk + newBreak.off} break with {newBreak.off} ball(s) off the table in {newBreak.frame / 60:.2f} seconds ({newBreak.frame} frames)!")
 
 
 # TODO slash commands for show leaderboard, and show user (by ping)
