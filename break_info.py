@@ -58,6 +58,8 @@ class BreakInfo:
     # Equal operator
     #
     def __eq__(self, other: "BreakInfo") -> bool:
+        if other == None:
+            return False
         return (self.sunk == other.sunk
                 and self.off == other.off
                 and self.foul == other.foul
@@ -67,6 +69,8 @@ class BreakInfo:
     # Greater-than operator
     #
     def __gt__(self, other: "BreakInfo") -> bool:
+        if other == None:
+            return False
         self_total = self.sunk + self.off
         other_total = other.sunk + other.off
 
