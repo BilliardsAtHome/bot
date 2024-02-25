@@ -10,7 +10,8 @@
 - breaks.db : all 7+ breaks
 
 ## pip packages
-- discord
+pip install -r requirements (set up later)
+- discord.py
 - flask
 - flask_cors
 

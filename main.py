@@ -37,4 +37,4 @@ def onRequest():
     else:
         usersDB.add(breakInfo)
     # this is just temp to make sure it works, removoe later
-    return f"<p>{breakInfo}</p>"
+    return True
