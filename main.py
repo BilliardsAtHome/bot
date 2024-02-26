@@ -36,5 +36,5 @@ def onRequest():
             usersDB.set_user_best(breakInfo)
     else:
         usersDB.add(breakInfo)
-    # this is just temp to make sure it works, removoe later
-    return True
+    # dont remove this, you need it apparently
+    return f"<p>{breakInfo}</p>"

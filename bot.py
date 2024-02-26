@@ -6,11 +6,8 @@ from break_info import BreakInfo
 from database import Database
 import time
 from os import path
+from hashlib import md5
 
-#TODO figure out embed builder for leaderboard (buttons to nav pages)
-#TODO slash commands
-    # leaderboard
-    # user (basically leaderboard but for one person)
 #! figure out server stuff, nginx/gunicorn
 
 # Classes
@@ -21,8 +18,10 @@ class Globals:
 
         self.serverID = int(parser.get("discord", "server"))
         self.channelID = int(parser.get("discord", "channel"))
+        self.botColor = discord.Colour.from_str("#" + str(parser.get("discord", "color")))
         self.token = str(parser.get("secrets", "token"))
         self.appID = int(parser.get("secrets", "appID"))
+
 
         self.server = None
         self.channel = None
@@ -36,8 +35,6 @@ class Globals:
         parser['io']['timestamp'] = str(newTimestamp)
         with open(path, 'w') as configfile:
             parser.write(configfile)
-        print(f"wrote {newTimestamp}")
-
         return oldTimestamp
 
 # Globals
@@ -52,7 +49,6 @@ async def recordCheck(timestamp)-> BreakInfo | None:
     oldBest = breaksDB.get_global_best_at_before(timestamp)
     newBest = breaksDB.get_new_global_best(timestamp)
 
-    #TODO try except maybe not necessary? check BreakInfo vs None comparison and see if it catches
     try:
         if newBest > oldBest:
             return newBest
@@ -60,11 +56,19 @@ async def recordCheck(timestamp)-> BreakInfo | None:
         print(e)
         return None
 
+
 def stringToColor(string: str):
-    val1 = format(hash(string) % 255, '02x')
-    val2 = format(hash(string[1:] + string[:1]) % 255, '02x')
-    val3 = format(hash(string[2:] + string[:2]) % 255, '02x')
+    val1 = format(goodHash(string) % 255, '02x')
+    val2 = format(goodHash(string[1:] + string[:1]) % 255, '02x')
+    val3 = format(goodHash(string[2:] + string[:2]) % 255, '02x')
     return "#" + val1 + val2 + val3
+
+
+def goodHash(string):
+    x = 11012001182514 
+    for c in string:
+        x = ((x << 5) + x) + ord(c)
+    return x ^ len(string)
 
 
 # bot stuff here
@@ -73,6 +77,7 @@ def stringToColor(string: str):
     description="ping :3")
 async def command_a(interaction: discord.Interaction):
     await interaction.response.send_message("h", ephemeral = True)
+
 
 @tree.command(name = "get-user", description = "Gets a user's high score")
 @app_commands.describe(user = "What user?")
@@ -86,16 +91,70 @@ async def getUser(interaction: discord.Interaction, user: discord.User):
         userEmbed.add_field(name = "Foul", value = bestBreak.foul, inline = True)
         userEmbed.add_field(name = "Time", value = f"{bestBreak.frame/60:.2f}", inline = True)
         userEmbed.add_field(name = "Frames", value = f"{bestBreak.frame}", inline = True)
-        userEmbed.set_footer(icon_url = "https://github.com/aspynect/billiards-bruteforcer-bot/assets/4ball.png")
 
-        await interaction.response.send_message(embed = userEmbed)
+        await interaction.response.send_message(embed = userEmbed, ephemeral = True)
         #await interaction.response.send_message(f"<@{user.id}>\n{bestBreak.sunk + bestBreak.off = }\n{bestBreak.off = }\n{bestBreak.foul = }\n{bestBreak.frame = }", ephemeral = True)
     else:
-        await interaction.response.send_message(f"<@{user.id}> does not have a high score.")
+        await interaction.response.send_message(f"<@{user.id}> does not have a high score.", ephemeral = True)
+
 
 @tree.command(name = "get-leaderboard", description = "Gets the high scores leaderboard")
 async def getUser(interaction: discord.Interaction):
+    usersDB = Database('users.db')
+    usersList: list = usersDB.get_top_10()
+    longestName = 0
+    usernamesList = []
+    for user in usersList:
+        userObject = await client.fetch_user(user.user)
+        userName = str(userObject.name)
+        if len(userName) > longestName:
+            longestName = len(userName)
+
+    outputString = f"```{'name':<{longestName + 2}} {'balls':<6} {'off':<4} {'foul':<6} {'frame':<6}\n"
+    for breakObject in usersList:
+        userObject = await client.fetch_user(breakObject.user)
+        userName = str(userObject.name)
+        outputString += f"{userName:<{longestName + 2}} {breakObject.sunk + breakObject.off:<6} {breakObject.off:<4} {breakObject.foul:<6} {breakObject.frame:<6}\n"
+    outputString += "```"
+
+    leaderboardEmbed = discord.Embed(title = "Global Leaderboard", color = globals.botColor)
+    leaderboardEmbed.add_field(name = "Top 10 users", value = outputString)
+    await interaction.response.send_message(embed = leaderboardEmbed, ephemeral = True)
+
+
+@tree.command(name = "stats", description = "Break statistics")
+async def globalStats(interaction: discord.Interaction):
+    breaksDB = Database('breaks.db')
+    break7 = breaksDB #TODO get global 7 breaks
+    break8 = breaksDB #TODO get global 8 breaks
+    break9 = breaksDB #TODO get global 9 breaks
+    outputString = f"```7: {break7:<6}\n8: {break8:<6}\n9: {break9:<6} "
+
+    statsEmbed = discord.Embed(title = "Global Break Stats", color =  globals.botColor)
+    statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
+    await interaction.response.send_message(embed = statsEmbed, ephemeral = True)
+
+
+@tree.command(name = "user-stats", description = "Break statistics for a specific user")
+@app_commands.describe(user = "What user?")
+async def userStats(interaction: discord.Interaction, user: discord.User):
+    breaksDB = Database('breaks.db')
+    break7 = breaksDB #TODO get user 7 breaks
+    break8 = breaksDB #TODO get user 8 breaks
+    break9 = breaksDB #TODO get user 9 breaks
+    outputString = f"```7: {break7:<6}\n8: {break8:<6}\n9: {break9:<6} "
+
+    statsEmbed = discord.Embed(title = f"{user.name}'s Break Stats", color =  globals.botColor)
+    statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
+    await interaction.response.send_message(embed = statsEmbed, ephemeral = True)
+
+
+@tree.command(name = "gecko", description = "Generate gecko code for a user's best break")
+@app_commands.describe(user = "What user?")
+async def userStats(interaction: discord.Interaction, user: discord.User):
+    #TODO make gecko code for a user's best break
     pass
+
 
 @tree.command(name='sync', description='Owner only')
 async def sync(interaction: discord.Interaction):
@@ -105,6 +164,7 @@ async def sync(interaction: discord.Interaction):
     else:
         await interaction.response.send_message('You must be the owner to use this command!', ephemeral = True)
 
+
 @client.event
 async def on_ready():
     # Find channel through the client cache
@@ -112,7 +172,8 @@ async def on_ready():
     globals.channel = client.get_channel(globals.channelID)
     assert globals.server is not None, "Can't find/access the discord server"
     assert globals.channel is not None, "Can't find/access the discord channel"
-    # task_watch_file.start()
+    task_watch_file.start()
+
 
 # Periodically checks database for new top entry
 #TODO change to a minute when done testing
@@ -123,10 +184,17 @@ async def task_watch_file():
     timestamp = globals.timestamp("config.ini")
     newBreak = await recordCheck(timestamp)
     if type(newBreak) != type(None):
-        await globals.channel.send(f"User <@{newBreak.user}> got a {newBreak.sunk + newBreak.off} break with {newBreak.off} ball(s) off the table in {newBreak.frame / 60:.2f} seconds ({newBreak.frame} frames)!")
+        user = await client.fetch_user(newBreak.user)
+        recordEmbed = discord.Embed(title = f"New Break Record by {user.name}", color = discord.Colour.from_str(stringToColor(user.name)))
+        recordEmbed.add_field(name = "Out of Play", value = newBreak.sunk + newBreak.off, inline = True)
+        recordEmbed.add_field(name = "Off table", value = newBreak.off, inline = True)
+        recordEmbed.add_field(name = "Foul", value = newBreak.foul, inline = True)
+        recordEmbed.add_field(name = "Time", value = f"{newBreak.frame/60:.2f}", inline = True)
+        recordEmbed.add_field(name = "Frames", value = f"{newBreak.frame}", inline = True)
+        recordEmbed.set_footer(text = user.id)
+        #TODO change id to correct role
+        await globals.channel.send(f"<@&{1211397479875084339}>",embed = recordEmbed)
 
-
-# TODO slash commands for show leaderboard, and show user (by ping)
 
 
 # Start the bot

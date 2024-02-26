@@ -98,6 +98,23 @@ class Database:
         self.cursor.execute(command)
 
         return [BreakInfo(*row) for row in self.cursor.fetchall()]
+    
+    #
+    #
+    # Obtain all records in database
+    #
+    # Returns:
+    #   List of all entries in database
+    #
+    #
+    def get_top_10(self) -> list:
+        command = f"""SELECT * FROM break
+        ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame 
+        ASC LIMIT 10"""
+
+        self.cursor.execute(command)
+
+        return [BreakInfo(*row) for row in self.cursor.fetchall()]
 
     #
     #
