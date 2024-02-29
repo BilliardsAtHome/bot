@@ -93,13 +93,12 @@ async def getUser(interaction: discord.Interaction, user: discord.User):
         userEmbed.add_field(name = "Frames", value = f"{bestBreak.frame}", inline = True)
 
         await interaction.response.send_message(embed = userEmbed, ephemeral = True)
-        #await interaction.response.send_message(f"<@{user.id}>\n{bestBreak.sunk + bestBreak.off = }\n{bestBreak.off = }\n{bestBreak.foul = }\n{bestBreak.frame = }", ephemeral = True)
     else:
         await interaction.response.send_message(f"<@{user.id}> does not have a high score.", ephemeral = True)
 
 
 @tree.command(name = "get-leaderboard", description = "Gets the high scores leaderboard")
-async def getUser(interaction: discord.Interaction):
+async def getLeaderboard(interaction: discord.Interaction):
     usersDB = Database('users.db')
     usersList: list = usersDB.get_top_10()
     longestName = 0
@@ -125,10 +124,10 @@ async def getUser(interaction: discord.Interaction):
 @tree.command(name = "stats", description = "Break statistics")
 async def globalStats(interaction: discord.Interaction):
     breaksDB = Database('breaks.db')
-    break7 = breaksDB #TODO get global 7 breaks
-    break8 = breaksDB #TODO get global 8 breaks
-    break9 = breaksDB #TODO get global 9 breaks
-    outputString = f"```7: {break7:<6}\n8: {break8:<6}\n9: {break9:<6} "
+    break7 = breaksDB.count("(sunk+off) = 7")
+    break8 = breaksDB.count("(sunk+off) = 8")
+    break9 = breaksDB.count("(sunk+off) = 9")
+    outputString = f"```{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
 
     statsEmbed = discord.Embed(title = "Global Break Stats", color =  globals.botColor)
     statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
@@ -139,10 +138,10 @@ async def globalStats(interaction: discord.Interaction):
 @app_commands.describe(user = "What user?")
 async def userStats(interaction: discord.Interaction, user: discord.User):
     breaksDB = Database('breaks.db')
-    break7 = breaksDB #TODO get user 7 breaks
-    break8 = breaksDB #TODO get user 8 breaks
-    break9 = breaksDB #TODO get user 9 breaks
-    outputString = f"```7: {break7:<6}\n8: {break8:<6}\n9: {break9:<6} "
+    break7 = breaksDB.count(f"(sunk+off) = 7 AND user = {user.id}")
+    break8 = breaksDB.count(f"(sunk+off) = 8 AND user = {user.id}")
+    break9 = breaksDB.count(f"(sunk+off) = 9 AND user = {user.id}")
+    outputString = f"```{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
 
     statsEmbed = discord.Embed(title = f"{user.name}'s Break Stats", color =  globals.botColor)
     statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
@@ -151,7 +150,7 @@ async def userStats(interaction: discord.Interaction, user: discord.User):
 
 @tree.command(name = "gecko", description = "Generate gecko code for a user's best break")
 @app_commands.describe(user = "What user?")
-async def userStats(interaction: discord.Interaction, user: discord.User):
+async def getGecko(interaction: discord.Interaction, user: discord.User):
     #TODO make gecko code for a user's best break
     pass
 
@@ -182,8 +181,8 @@ async def task_watch_file():
     if not path.exists('breaks.db'):
         return
     timestamp = globals.timestamp("config.ini")
-    newBreak = await recordCheck(timestamp)
-    if type(newBreak) != type(None):
+    
+    if newBreak := await recordCheck(timestamp):
         user = await client.fetch_user(newBreak.user)
         recordEmbed = discord.Embed(title = f"New Break Record by {user.name}", color = discord.Colour.from_str(stringToColor(user.name)))
         recordEmbed.add_field(name = "Out of Play", value = newBreak.sunk + newBreak.off, inline = True)
@@ -194,7 +193,6 @@ async def task_watch_file():
         recordEmbed.set_footer(text = user.id)
         #TODO change id to correct role
         await globals.channel.send(f"<@&{1211397479875084339}>",embed = recordEmbed)
-
 
 
 # Start the bot

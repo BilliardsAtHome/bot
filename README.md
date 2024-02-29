@@ -10,23 +10,24 @@
 - breaks.db : all 7+ breaks
 
 ## pip packages
-pip install -r requirements (set up later)
-- discord.py
-- flask
-- flask_cors
+pip install -r requirements
 
 ## config.ini
 [discord]
 server = {server ID}
 channel = {channel ID}
+color = {bot color (462b5d)}
 
 [secrets]
 token = {app token}
 appID = {app ID}
 
-## testing setup
+[io]
+timestamp = {timestamp of last check time}
+
+## venv
 python3 -m venv env
 source env/bin/activate
-pip install discord flask flask_cors
+pip install discord.py flask flask_cors
 
 flask --app main run
