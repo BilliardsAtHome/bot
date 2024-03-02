@@ -73,7 +73,7 @@ class BreakInfo:
     #
     def __gt__(self, other: "BreakInfo") -> bool:
         if other == None:
-            return False
+            return True
         self_total = self.sunk + self.off
         other_total = other.sunk + other.off
 

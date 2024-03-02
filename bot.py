@@ -190,7 +190,6 @@ async def task_watch_file():
         recordEmbed.add_field(name = "Time", value = f"{newBreak.frame/60:.2f}", inline = True)
         recordEmbed.add_field(name = "Frames", value = f"{newBreak.frame}", inline = True)
         recordEmbed.set_footer(text = user.id)
-        #TODO change id to correct role
         await globals.channel.send(f"<@&{globals.role}>",embed = recordEmbed)
 
 
