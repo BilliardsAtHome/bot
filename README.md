@@ -16,6 +16,7 @@ pip install -r requirements
 [discord]
 server = {server ID}
 channel = {channel ID}
+role = {role id}
 color = {bot color (462b5d)}
 
 [secrets]
@@ -25,7 +26,7 @@ appID = {app ID}
 [io]
 timestamp = {timestamp of last check time}
 
-## venv
+## venv note
 python3 -m venv env
 source env/bin/activate
 pip install discord.py flask flask_cors

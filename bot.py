@@ -8,7 +8,6 @@ import time
 from os import path
 from hashlib import md5
 
-#! figure out server stuff, nginx/gunicorn
 
 # Classes
 class Globals:
@@ -18,6 +17,7 @@ class Globals:
 
         self.serverID = int(parser.get("discord", "server"))
         self.channelID = int(parser.get("discord", "channel"))
+        self.role = int(parser.get("discord", "role"))
         self.botColor = discord.Colour.from_str("#" + str(parser.get("discord", "color")))
         self.token = str(parser.get("secrets", "token"))
         self.appID = int(parser.get("secrets", "appID"))
@@ -113,7 +113,7 @@ async def getLeaderboard(interaction: discord.Interaction):
     for breakObject in usersList:
         userObject = await client.fetch_user(breakObject.user)
         userName = str(userObject.name)
-        outputString += f"{userName:<{longestName + 2}} {breakObject.sunk + breakObject.off:<6} {breakObject.off:<4} {breakObject.foul:<6} {breakObject.frame:<6}\n"
+        outputString += f"{userName:<{longestName + 2}} {breakObject.sunk + breakObject.off:<6} {breakObject.off:<4} {breakObject.foul!s:<6} {breakObject.frame:<6}\n"
     outputString += "```"
 
     leaderboardEmbed = discord.Embed(title = "Global Leaderboard", color = globals.botColor)
@@ -175,8 +175,7 @@ async def on_ready():
 
 
 # Periodically checks database for new top entry
-#TODO change to a minute when done testing
-@tasks.loop(seconds=5)
+@tasks.loop(seconds=60)
 async def task_watch_file():
     if not path.exists('breaks.db'):
         return
@@ -192,7 +191,7 @@ async def task_watch_file():
         recordEmbed.add_field(name = "Frames", value = f"{newBreak.frame}", inline = True)
         recordEmbed.set_footer(text = user.id)
         #TODO change id to correct role
-        await globals.channel.send(f"<@&{1211397479875084339}>",embed = recordEmbed)
+        await globals.channel.send(f"<@&{globals.role}>",embed = recordEmbed)
 
 
 # Start the bot
