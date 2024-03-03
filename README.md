@@ -13,6 +13,7 @@
 pip install -r requirements
 
 ## config.ini
+```
 [discord]
 server = {server ID}
 channel = {channel ID}
@@ -25,6 +26,7 @@ appID = {app ID}
 
 [io]
 timestamp = {timestamp of last check time}
+```
 
 ## venv note
 python3 -m venv env
