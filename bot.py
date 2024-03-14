@@ -151,7 +151,79 @@ async def userStats(interaction: discord.Interaction, user: discord.User):
 @tree.command(name = "gecko", description = "Generate gecko code for a user's best break")
 @app_commands.describe(user = "What user?")
 async def getGecko(interaction: discord.Interaction, user: discord.User):
-    #TODO make gecko code for a user's best break
+    usersDB = Database('users.db')
+    userBreak = usersDB.get_user_best(user.id)
+    #TODO update with new gecko code when the time comes
+    # {userBreak.seed:08X}
+    response = f'''```
+c22ba1e8 0000000a
+7c0802a6 90010004
+9421ff70 bc610008
+3fe0{f"{userBreak.seed:08x}"[:4]} 63ff{f"{userBreak.seed:08x}"[4:]}
+3fc08044 93fec620
+3c608044 8063ca00
+3fe0802c 63ff5d94
+7fe903a6 4e800421
+b8610008 38210090
+80010004 7c0803a6
+4e800020 00000000
+c20a6b3c 0000000b
+48000010 4e800021
+{userBreak.posx:08x} {userBreak.posy:08x}
+7c0802a6 90010004
+9421ff70 bc810008
+7c9f2378 3d80800c
+618c9b14 7d8903a6
+4e800421 4bffffd1
+7fc802a6 e01e0000
+f01f0020 b8810008
+38210090 80010004
+7c0803a6 00000000
+c22beff8 00000008
+4800000c 4e800021
+{userBreak.power:08x} 7c0802a6
+90010004 9421ff70
+bc610008 4bffffe9
+7fe802a6 c03f0000
+b8610008 38210090
+80010004 7c0803a6
+60000000 00000000
+c22c5f38 00000005
+3fc0{f"{userBreak.getAimX():08x}"[:4]} 63de{f"{userBreak.getAimX():08x}"[4:]}
+3fe08000 93df2a00
+3fc0{f"{userBreak.up:08x}"[:4]} 63de{f"{userBreak.up:08x}"[4:]}
+3fe08000 93df2a04
+4e800020 00000000
+c22bfcb0 00000018
+48000010 4e800021
+3acde32f bbcde32f
+7c0802a6 90010004
+9421ff70 bc610008
+881f01fc 2c000000
+4082007c 3fc08000
+63de2a00 4bffffd1
+7fa802a6 c03d0000
+839e0000 2c1c0000
+41820030 4181000c
+3b9c0001 4800000c
+fc200850 3b9cffff
+7fe3fb78 3d80802b
+618cc238 7d8903a6
+4e800421 939e0000
+c03d0004 839e0004
+2c1c0000 41820020
+3b9cffff 7fe3fb78
+3d80802b 618cc000
+7d8903a6 4e800421
+939e0004 b8610008
+38210090 80010004
+7c0803a6 806d91b0
+60000000 00000000   
+```'''
+    print(len(response))
+    geckoEmbed = discord.Embed(title = f"{user.name}'s Best Break", color = discord.Colour.from_str(stringToColor(user.name)))
+    geckoEmbed.add_field(name = "Gecko Code", value = response.upper())
+    await interaction.response.send_message(embed = geckoEmbed, ephemeral = True)
     pass
 
 

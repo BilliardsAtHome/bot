@@ -97,3 +97,9 @@ class BreakInfo:
 
     def __repr__(self):
         return str(self.__dict__)
+
+    def getAimX(self):
+        if self.right > 0:
+            return self.right
+        else:
+            return self.left * -1
