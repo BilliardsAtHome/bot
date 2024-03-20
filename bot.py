@@ -6,7 +6,6 @@ from break_info import BreakInfo
 from database import Database
 import time
 from os import path
-from hashlib import md5
 
 
 # Classes
