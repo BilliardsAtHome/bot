@@ -30,11 +30,6 @@ def onRequest():
         breakDB = Database('breaks.db')
         breakDB.add(breakInfo)
     usersDB = Database('users.db')
-    if usersDB.contains_user(breakInfo.user):
-        userBest: BreakInfo = usersDB.get_user_best(breakInfo.user)
-        if breakInfo > userBest:
-            usersDB.set_user_best(breakInfo)
-    else:
-        usersDB.add(breakInfo)
+    usersDB.set_user_best(breakInfo)
     # dont remove this, you need it
     return f"<p>{breakInfo}</p>"

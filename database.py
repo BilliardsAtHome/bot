@@ -149,11 +149,13 @@ class Database:
         if not old:
             self.add(info)
             return None
+        
 
         # Replace old entry
-        where = dict_to_sql_where(asdict(old))
-        self.replace(where, info)
-        return old
+        if info > old:
+            where = dict_to_sql_where(asdict(old))
+            self.replace(where, info)
+            return old
     
     #
     #
