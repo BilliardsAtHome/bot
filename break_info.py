@@ -52,7 +52,7 @@ class BreakInfo:
                     setattr(self, field.name, int(member, base=0))
                 # Expect integer values for booleans
                 elif field.type == bool:
-                    setattr(self, field.name, bool(int(member)))
+                    setattr(self, field.name, bool(int(member, base=0)))
                 # Some other type, cast normally
                 else:
                     setattr(self, field.name, field.type(member))
