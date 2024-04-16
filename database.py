@@ -166,7 +166,7 @@ class Database:
     #   (None if there are no results)
     #
     #
-    def get_global_best(self) -> BreakInfo | None:
+    def get_global_best(self) -> BreakInfo:
         command = """SELECT * FROM break
         ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
         LIMIT 1"""
@@ -187,7 +187,7 @@ class Database:
     #
 
 
-    def get_global_best_at_before(self, timestamp: int) -> BreakInfo | None:
+    def get_global_best_at_before(self, timestamp: int) -> BreakInfo:
         command = f"""SELECT * FROM break WHERE timestamp <= {timestamp}
         ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
         LIMIT 1"""
@@ -208,7 +208,7 @@ class Database:
     #
 
 
-    def get_new_global_best(self, last_time: int) -> BreakInfo | None:
+    def get_new_global_best(self, last_time: int) -> BreakInfo:
         best_before = self.get_global_best_at_before(last_time)
         best_ever = self.get_global_best()
         return best_ever if best_before != best_ever else None

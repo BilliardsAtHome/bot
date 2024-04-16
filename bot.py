@@ -43,7 +43,7 @@ tree = app_commands.CommandTree(client)
 
 
 # Function
-async def recordCheck(timestamp)-> BreakInfo | None:
+async def recordCheck(timestamp)-> BreakInfo:
     breaksDB = Database('breaks.db')
     oldBest = breaksDB.get_global_best_at_before(timestamp)
     newBest = breaksDB.get_new_global_best(timestamp)
