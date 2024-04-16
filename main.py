@@ -15,15 +15,24 @@ app.config["CORS_HEADERS"] = "Content-Type"
 @app.route("/billiards/api") # endpoint relative to how nginix is set up
 @cross_origin()
 def onRequest():
+    allow_submit = True
+
     try:
         # convert to regular dictionary (single value)
         args = request.args.to_dict()
         # unpack fields from dictionary
         breakInfo = BreakInfo(**args)
         breakInfo.timestamp = round(time.time())
+
+        # confirm data integrity
+        if breakInfo.checksum != breakInfo.calcChecksum():
+            allow_submit = False
     except (TypeError, ValueError) as error:
         print(error)
         # wrong argument count / name / type
+        allow_submit = False
+
+    if not allow_submit:
         return ""
 
     if breakInfo.sunk + breakInfo.off > 6:

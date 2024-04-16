@@ -98,6 +98,32 @@ class BreakInfo:
     def __repr__(self):
         return str(self.__dict__)
 
+    # Compute checksum of this break
+    def calcChecksum(self) -> int:
+        sum = invsum = 0
+
+        for field in fields(self):
+            # dont touch user id
+            if field.name == "user":
+                continue
+            # everything at/below checksum is ignored
+            if field.name == "checksum":
+                break
+
+            value = int(getattr(self, field.name))
+
+            # lower 16
+            sum += (value & 0xFFFF)
+            invsum += ~(value & 0xFFFF)
+
+            # higher 16 (when applicable)
+            if field.type == int:
+                sum += (value >> 16 & 0xFFFF)
+                invsum += ~(value >> 16 & 0xFFFF)
+
+        return sum << 16 | invsum
+
+    # X component of aim for Gecko code
     def getAimX(self):
         if self.right > 0:
             return self.right
