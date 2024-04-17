@@ -1,25 +1,6 @@
 from sqlite3 import connect, OperationalError
 from break_info import BreakInfo
 from dataclasses import fields, astuple, asdict
-from random import randint
-
-
-#
-# Convert dictionary to SET command values
-#
-def dict_to_sql_set(d):
-    # {name1 : "value1", name2 : "value2"} -> name1="value1", name2="value2"
-    return ", ".join([f"{key}={value}"
-                      for key, value in d.items()])
-
-
-#
-# Convert dictionary to SET command values
-#
-def dict_to_sql_where(d):
-    # {name1 : "value1", name2 : "value2"} -> name1="value1" AND name2="value2"
-    return " AND ".join([f"{key}={value}"
-                        for key, value in d.items()])
 
 
 class Database:
@@ -80,7 +61,13 @@ class Database:
     #
     #
     def contains_user(self, user: str) -> bool:
-        return self.count(f"user = {user}") > 0
+        command = f"SELECT COUNT (*) FROM break WHERE user = ?"
+
+        self.cursor.execute(command, (user,))
+        result = self.cursor.fetchone()
+
+        count = 0 if not result else result[0]
+        return count > 0
 
     #
     #
@@ -92,13 +79,13 @@ class Database:
     #
     #
     def get_user_all(self, user: str) -> list:
-        command = f"""SELECT * FROM break WHERE user = {user}
+        command = f"""SELECT * FROM break WHERE user = ?
         ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC"""
 
-        self.cursor.execute(command)
+        self.cursor.execute(command, (user,))
 
         return [BreakInfo(*row) for row in self.cursor.fetchall()]
-    
+
     #
     #
     # Obtain all records in database
@@ -125,11 +112,11 @@ class Database:
     #
     #
     def get_user_best(self, user: str) -> BreakInfo:
-        command = f"""SELECT * FROM break WHERE user = {user}
+        command = f"""SELECT * FROM break WHERE user = ?
         ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
         LIMIT 1"""
 
-        self.cursor.execute(command)
+        self.cursor.execute(command, (user,))
 
         result = self.cursor.fetchone()
         return None if not result else BreakInfo(*result)
@@ -149,14 +136,12 @@ class Database:
         if not old:
             self.add(info)
             return None
-        
 
         # Replace old entry
         if info > old:
-            where = dict_to_sql_where(asdict(old))
-            self.replace(where, info)
+            self.replace(old, info)
             return old
-    
+
     #
     #
     # Obtain best record across all users
@@ -186,7 +171,6 @@ class Database:
     #
     #
 
-
     def get_global_best_at_before(self, timestamp: int) -> BreakInfo:
         command = f"""SELECT * FROM break WHERE timestamp <= {timestamp}
         ORDER BY (sunk + off) DESC, sunk DESC, foul ASC, frame ASC
@@ -206,7 +190,6 @@ class Database:
     #   (None if there has not been a new record)
     #
     #
-
 
     def get_new_global_best(self, last_time: int) -> BreakInfo:
         best_before = self.get_global_best_at_before(last_time)
@@ -243,6 +226,7 @@ class Database:
     #
     def remove(self, where: str) -> int:
         assert not where.isspace() and len(where) > 0, "This will delete the entire table!"
+        assert not " user " in where, "This won't work"
 
         command = f"DELETE FROM break WHERE {where}"
 
@@ -260,6 +244,8 @@ class Database:
     #
     #
     def filter(self, where: str) -> list:
+        assert not " user " in where, "This won't work"
+
         command = f"SELECT * FROM break WHERE {where}"
 
         self.cursor.execute(command)
@@ -275,6 +261,8 @@ class Database:
     #
     #
     def top(self, count: int, where: str) -> list:
+        assert not " user " in where, "This won't work"
+
         command = f"SELECT * FROM break WHERE {where} LIMIT {count}"
 
         self.cursor.execute(command)
@@ -290,6 +278,8 @@ class Database:
     #
     #
     def count(self, where: str) -> int:
+        assert not " user " in where, "This won't work"
+
         command = f"SELECT COUNT (*) FROM break WHERE {where}"
 
         self.cursor.execute(command)
@@ -299,42 +289,22 @@ class Database:
 
     #
     #
-    # Update certain fields in existing database entries.
-    #
-    # Returns:
-    #   Number of entries changed
-    #
-    #
-    def update(self, where: str, values: dict) -> int:
-        assert len(where) > 0, "This will update the entire table!"
-
-        params = dict_to_sql_set(values)
-        command = f"UPDATE break SET {params} WHERE {where}"
-
-        self.cursor.execute(command)
-        self.connection.commit()
-
-        return self.cursor.rowcount
-
-    #
-    #
     # Replace existing database entries.
     #
     # Returns:
     #   Number of entries replaced
     #
     #
-    def replace(self, where: str, info: BreakInfo) -> int:
-        assert len(where) > 0, "This will replace the entire table!"
+    def replace(self, old: BreakInfo, new: BreakInfo) -> int:
+        command = f"UPDATE break SET "
+        command += ", ".join([f"{x.name} = ?" for x in fields(new)])
 
-        # Convert BreakInfo to SQL command syntax
-        # user="10920192", seed="0x12345678", etc.
-        params = ", ".join([f"{field.name}={getattr(info, field.name)}"
-                            for field in fields(info)])
+        command += " WHERE "
+        command += " AND ".join([f"{x.name} = ?" for x in fields(old)])
 
-        command = f"UPDATE break SET {params} WHERE {where}"
+        params = (*astuple(new), *astuple(old),)
 
-        self.cursor.execute(command)
+        self.cursor.execute(command, (*params,))
         self.connection.commit()
 
         return self.cursor.rowcount

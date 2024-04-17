@@ -52,7 +52,10 @@ class BreakInfo:
                     setattr(self, field.name, int(member, base=0))
                 # Expect integer values for booleans
                 elif field.type == bool:
-                    setattr(self, field.name, bool(int(member, base=0)))
+                    if type(member) == str:
+                        member = int(member, base=0)
+
+                    setattr(self, field.name, bool(member))
                 # Some other type, cast normally
                 else:
                     setattr(self, field.name, field.type(member))
@@ -121,7 +124,7 @@ class BreakInfo:
                 sum += (value >> 16 & 0xFFFF)
                 invsum += ~(value >> 16 & 0xFFFF)
 
-        return sum << 16 | invsum
+        return (sum << 16 | invsum) & 0xFFFFFFFF
 
     # X component of aim for Gecko code
     def getAimX(self):
