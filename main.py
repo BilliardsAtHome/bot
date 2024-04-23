@@ -35,6 +35,7 @@ def onRequest():
     if not allow_submit:
         return ""
 
+    print(breakInfo)
     if breakInfo.sunk + breakInfo.off > 6:
         breakDB = Database('breaks.db')
         breakDB.add(breakInfo)
