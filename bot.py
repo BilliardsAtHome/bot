@@ -88,6 +88,7 @@ def hexN(value, bits):
     description="ping :3")
 async def command_a(interaction: discord.Interaction):
     await interaction.response.send_message("h", ephemeral = True)
+    print("Ping")
 
 
 @tree.command(name = "get-user", description = "Gets a user's high score")
