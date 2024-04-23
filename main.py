@@ -16,7 +16,7 @@ app.config["CORS_HEADERS"] = "Content-Type"
 @cross_origin()
 def onRequest():
     allow_submit = True
-
+    print("Request Received")
     try:
         # convert to regular dictionary (single value)
         args = request.args.to_dict()
