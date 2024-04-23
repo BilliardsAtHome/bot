@@ -17,6 +17,7 @@ app.config["CORS_HEADERS"] = "Content-Type"
 def onRequest():
     allow_submit = True
     print("Request Received")
+    print(request.data)
     try:
         # convert to regular dictionary (single value)
         args = request.args.to_dict()
