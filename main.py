@@ -19,8 +19,11 @@ def onRequest():
     print("Request Received")
     print(request.data)
     try:
+        uniqueUserDB = UserDB('users.db')
         # convert to regular dictionary (single value)
         args = request.args.to_dict()
+        args["user"] = uniqueUserDB.get_discord_id(int(args["user"]))
+        
         # unpack fields from dictionary
         breakInfo = BreakInfo(**args)
         breakInfo.timestamp = round(time.time())

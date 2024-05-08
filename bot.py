@@ -3,9 +3,10 @@ from discord import app_commands
 from discord.ext import tasks
 from configparser import RawConfigParser
 from break_info import BreakInfo
-from database import Database
 import time
 from os import path
+from user_db import UserDB
+from break_db import BreakDB
 
 
 # Classes
@@ -45,7 +46,7 @@ tree = app_commands.CommandTree(client)
 
 # Function
 async def recordCheck(timestamp)-> BreakInfo:
-    breaksDB = Database('breaks.db')
+    breaksDB = BreakDB('allBreaks.db')
     oldBest = breaksDB.get_global_best_at_before(timestamp)
     newBest = breaksDB.get_new_global_best(timestamp)
 
@@ -91,11 +92,20 @@ async def command_a(interaction: discord.Interaction):
     await interaction.response.send_message("h", ephemeral = True)
     print("Ping")
 
+@tree.command(
+    name="get-id",
+    description="Get your unique ID to enter into the bruteforcer")
+async def getID(interaction: discord.Interaction):
+    uniqueUserDB = UserDB('users.db')
+    uniqueID = uniqueUserDB.add_discord_id(str(interaction.user.id))
+    idEmbed = discord.Embed(title=f"{interaction.user.name}'s Unique ID", color = discord.Colour.from_str(stringToColor(interaction.user.name)))
+    idEmbed.add_field(name = "Unique ID", value = f"```{uniqueID}```")
+    await interaction.response.send_message(embed = idEmbed, ephemeral = True)
 
 @tree.command(name = "get-user", description = "Gets a user's high score")
 @app_commands.describe(user = "What user?")
 async def getUser(interaction: discord.Interaction, user: discord.User):
-    usersDB = Database('users.db')
+    usersDB = BreakDB('userBreaks.db')
     if usersDB.contains_user(user.id):
         bestBreak: BreakInfo = usersDB.get_user_best(user.id)
         userEmbed = discord.Embed(title = f"{user.name} High Score", color = discord.Colour.from_str(stringToColor(user.name)))
@@ -112,7 +122,7 @@ async def getUser(interaction: discord.Interaction, user: discord.User):
 
 @tree.command(name = "get-leaderboard", description = "Gets the high scores leaderboard")
 async def getLeaderboard(interaction: discord.Interaction):
-    usersDB = Database('users.db')
+    usersDB = BreakDB('userBreaks.db')
     usersList: list = usersDB.get_top_10()
     longestName = 0
     usernamesList = []
@@ -136,7 +146,7 @@ async def getLeaderboard(interaction: discord.Interaction):
 
 @tree.command(name = "stats", description = "Break statistics")
 async def globalStats(interaction: discord.Interaction):
-    breaksDB = Database('breaks.db')
+    breaksDB = BreakDB('allBreaks.db')
     break7 = breaksDB.count("(sunk+off) = 7")
     break8 = breaksDB.count("(sunk+off) = 8")
     break9 = breaksDB.count("(sunk+off) = 9")
@@ -150,7 +160,7 @@ async def globalStats(interaction: discord.Interaction):
 @tree.command(name = "user-stats", description = "Break statistics for a specific user")
 @app_commands.describe(user = "What user?")
 async def userStats(interaction: discord.Interaction, user: discord.User):
-    breaksDB = Database('breaks.db')
+    breaksDB = BreakDB('allBreaks.db')
     break7 = breaksDB.count(f"(sunk+off) = 7 AND user = ?", (user.id,))
     break8 = breaksDB.count(f"(sunk+off) = 8 AND user = ?", (user.id,))
     break9 = breaksDB.count(f"(sunk+off) = 9 AND user = ?", (user.id,))
@@ -164,7 +174,7 @@ async def userStats(interaction: discord.Interaction, user: discord.User):
 @tree.command(name = "gecko", description = "Generate gecko code for a user's best break")
 @app_commands.describe(user = "What user?")
 async def getGecko(interaction: discord.Interaction, user: discord.User):
-    usersDB = Database('users.db')
+    usersDB = BreakDB('userBreaks.db')
     userBreak = usersDB.get_user_best(user.id)
     #TODO update with new gecko code when the time comes
     # {userBreak.seed:08X}
@@ -243,7 +253,7 @@ async def on_ready():
 # Periodically checks database for new top entry
 @tasks.loop(seconds=globals.checkTimer)
 async def task_watch_file():
-    if not path.exists('breaks.db'):
+    if not path.exists('allBreaks.db'):
         return
     timestamp = globals.timestamp("config.ini")
     
