@@ -26,6 +26,7 @@ appID = {app ID}
 
 [io]
 timestamp = {timestamp of last check time}
+check = {time in seconds between checks in the time loop}
 ```
 
 ## venv note

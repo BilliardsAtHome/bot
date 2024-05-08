@@ -20,6 +20,7 @@ class Globals:
         self.botColor = discord.Colour.from_str("#" + str(parser.get("discord", "color")))
         self.token = str(parser.get("secrets", "token"))
         self.appID = int(parser.get("secrets", "appID"))
+        self.checkTimer = int(parser.get("io", "check"))
 
 
         self.server = None
@@ -240,7 +241,7 @@ async def on_ready():
 
 
 # Periodically checks database for new top entry
-@tasks.loop(seconds=60)
+@tasks.loop(seconds=globals.checkTimer)
 async def task_watch_file():
     if not path.exists('breaks.db'):
         return
