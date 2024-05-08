@@ -151,9 +151,9 @@ async def globalStats(interaction: discord.Interaction):
 @app_commands.describe(user = "What user?")
 async def userStats(interaction: discord.Interaction, user: discord.User):
     breaksDB = Database('breaks.db')
-    break7 = breaksDB.count(f"(sunk+off) = 7 AND user = {user.id}")
-    break8 = breaksDB.count(f"(sunk+off) = 8 AND user = {user.id}")
-    break9 = breaksDB.count(f"(sunk+off) = 9 AND user = {user.id}")
+    break7 = breaksDB.count(f"(sunk+off) = 7 AND user = ?", (user.id,))
+    break8 = breaksDB.count(f"(sunk+off) = 8 AND user = ?", (user.id,))
+    break9 = breaksDB.count(f"(sunk+off) = 9 AND user = ?", (user.id,))
     outputString = f"```{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
 
     statsEmbed = discord.Embed(title = f"{user.name}'s Break Stats", color =  globals.botColor)

@@ -277,12 +277,10 @@ class Database:
     #   Search results (BreakInfo) copied from the DB
     #
     #
-    def count(self, where: str) -> int:
-        assert not " user " in where, "This won't work"
-
+    def count(self, where: str, args: tuple = ()) -> int:
         command = f"SELECT COUNT (*) FROM break WHERE {where}"
 
-        self.cursor.execute(command)
+        self.cursor.execute(command, (*args,))
 
         result = self.cursor.fetchone()
         return 0 if not result else result[0]
