@@ -17,13 +17,15 @@ app.config["CORS_HEADERS"] = "Content-Type"
 def onRequest():
     allow_submit = True
     print("Request Received")
-    print(request.data)
+    print(request.args)
     try:
         uniqueUserDB = UserDB('users.db')
         # convert to regular dictionary (single value)
         args = request.args.to_dict()
-        args["user"] = uniqueUserDB.get_discord_id(int(args["user"]))
-        
+        if "user" in args:
+            args["user"] = uniqueUserDB.get_discord_id(int(args["user"]))
+        else:
+            return
         # unpack fields from dictionary
         breakInfo = BreakInfo(**args)
         breakInfo.timestamp = round(time.time())
