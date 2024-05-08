@@ -25,7 +25,7 @@ def onRequest():
         if "user" in args:
             args["user"] = uniqueUserDB.get_discord_id(int(args["user"]))
         else:
-            return
+            return ""
         # unpack fields from dictionary
         breakInfo = BreakInfo(**args)
         breakInfo.timestamp = round(time.time())
