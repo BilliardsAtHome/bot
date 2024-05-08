@@ -32,6 +32,7 @@ def onRequest():
 
         # confirm data integrity
         if breakInfo.checksum != breakInfo.calcChecksum():
+            print("Checksum Failed")
             allow_submit = False
     except (TypeError, ValueError) as error:
         print(error)
