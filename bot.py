@@ -147,10 +147,11 @@ async def getLeaderboard(interaction: discord.Interaction):
 @tree.command(name = "stats", description = "Break statistics")
 async def globalStats(interaction: discord.Interaction):
     breaksDB = BreakDB('allBreaks.db')
+    break6 = breaksDB.count("(sunk+off) = 6")
     break7 = breaksDB.count("(sunk+off) = 7")
     break8 = breaksDB.count("(sunk+off) = 8")
     break9 = breaksDB.count("(sunk+off) = 9")
-    outputString = f"```{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
+    outputString = f"```{"6:"} {break6:<4}\n{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
 
     statsEmbed = discord.Embed(title = "Global Break Stats", color =  globals.botColor)
     statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
@@ -161,10 +162,11 @@ async def globalStats(interaction: discord.Interaction):
 @app_commands.describe(user = "What user?")
 async def userStats(interaction: discord.Interaction, user: discord.User):
     breaksDB = BreakDB('allBreaks.db')
+    break6 = breaksDB.count(f"(sunk+off) = 6 AND user = ?", (user.id,))
     break7 = breaksDB.count(f"(sunk+off) = 7 AND user = ?", (user.id,))
     break8 = breaksDB.count(f"(sunk+off) = 8 AND user = ?", (user.id,))
     break9 = breaksDB.count(f"(sunk+off) = 9 AND user = ?", (user.id,))
-    outputString = f"```{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
+    outputString = f"```{"6:"} {break6:<4}\n{"7:"} {break7:<4}\n{"8:"} {break8:<4}\n{"9:"} {break9:<4}```"
 
     statsEmbed = discord.Embed(title = f"{user.name}'s Break Stats", color =  globals.botColor)
     statsEmbed.add_field(name = "Breaks per Tier", value = outputString)
