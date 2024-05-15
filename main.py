@@ -43,7 +43,7 @@ def onRequest():
         return ""
 
     print(breakInfo)
-    if breakInfo.sunk + breakInfo.off > 6:
+    if breakInfo.sunk + breakInfo.off >= 6:
         breakDB = BreakDB('allBreaks.db')
         breakDB.add(breakInfo)
     usersDB = BreakDB('userBreaks.db')
