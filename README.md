@@ -30,8 +30,10 @@ check = {time in seconds between checks in the time loop}
 ```
 
 ## venv note
+```
 python3 -m venv env
 source env/bin/activate
 pip install discord.py flask flask_cors
+```
 
 flask --app main run
